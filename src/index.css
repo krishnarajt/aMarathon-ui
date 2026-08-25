@@ -1,0 +1,415 @@
+@import 'tailwindcss';
+
+@source "../index.html";
+@source "./**/*.{js,jsx}";
+
+/* ---------------------------------------------------------------------------
+   Palette
+
+   Two brand colours anchor everything: crimson #911a3d and steel #414f54.
+   Acid lime is the third voice — it never competes with crimson because it only
+   ever appears as a fill with dark ink on it, or as a hairline.
+
+   Chart series colours are NOT here: SVG presentation attributes can't resolve
+   var(), so Recharts needs real hex values. They live in src/lib/palette.js and
+   are validated for colour-vision separation against both surfaces.
+--------------------------------------------------------------------------- */
+
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0e1315;
+  --bg-elev: #121a1c;
+  --surface-1: #161f21;
+  --surface-2: #1e2a2d;
+  --surface-3: #26353a;
+  --border: #2a393d;
+  --border-strong: #3d5157;
+
+  --text-1: #eef4f3;
+  --text-2: #a3b4b7;
+  --text-3: #82969b;
+
+  --brand: #911a3d;
+  --brand-soft: #6e1430;
+  --brand-bright: #b52a55;
+  --brand-glow: #ea4770;
+  --on-brand: #fff2f6;
+
+  --steel: #414f54;
+  --steel-bright: #586a70;
+
+  --accent: #c8f135;
+  --accent-dim: #a8cd22;
+  --accent-ink: #101705;
+  --accent-text: #c8f135;
+  /* Acid as a *mark* — progress fills, chart rules, heatmap outlines. The
+     bright fill above only ever appears with dark ink on top of it, so it never
+     has to clear 3:1 on its own; a mark does, and on the light surface
+     #c8f135 manages 1.28:1. This token is the version that passes in both
+     modes (12.9:1 dark, 3.7:1 light). */
+  --accent-mark: #c8f135;
+
+  --good: #35d6a4;
+  --warn: #f0a92c;
+  --bad: #f2607a;
+
+  --ring: color-mix(in oklab, var(--accent) 60%, transparent);
+  --shadow-soft: 0 18px 40px -24px rgb(0 0 0 / 0.9);
+  --shadow-pop: 0 24px 60px -28px color-mix(in oklab, var(--brand-glow) 55%, transparent);
+  --grain-opacity: 0.045;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f5f2ec;
+  --bg-elev: #efece4;
+  --surface-1: #fffdf9;
+  --surface-2: #f0ece2;
+  --surface-3: #e5e0d3;
+  --border: #ded8c9;
+  --border-strong: #c3bbaa;
+
+  --text-1: #131a1c;
+  --text-2: #4c5c61;
+  --text-3: #68777b;
+
+  --brand: #911a3d;
+  --brand-soft: #f4dbe3;
+  --brand-bright: #ad1f4a;
+  --brand-glow: #ca2356;
+  --on-brand: #fff4f7;
+
+  --steel: #414f54;
+  --steel-bright: #5f7278;
+
+  --accent: #c8f135;
+  --accent-dim: #b3da26;
+  --accent-ink: #131a02;
+  --accent-text: #4f6b06;
+  --accent-mark: #6b8f08;
+
+  --good: #087252;
+  --warn: #7d5100;
+  --bad: #c02a4c;
+
+  --ring: color-mix(in oklab, var(--brand) 45%, transparent);
+  --shadow-soft: 0 16px 34px -26px rgb(30 26 20 / 0.55);
+  --shadow-pop: 0 22px 50px -30px color-mix(in oklab, var(--brand) 40%, transparent);
+  --grain-opacity: 0.028;
+}
+
+@theme inline {
+  --font-display:
+    'Bricolage Grotesque', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+
+  --color-bg: var(--bg);
+  --color-bg-elev: var(--bg-elev);
+  --color-surface: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+
+  --color-ink: var(--text-1);
+  --color-ink-2: var(--text-2);
+  --color-ink-3: var(--text-3);
+
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-bright: var(--brand-bright);
+  --color-brand-glow: var(--brand-glow);
+  --color-on-brand: var(--on-brand);
+
+  --color-steel: var(--steel);
+  --color-steel-bright: var(--steel-bright);
+
+  --color-acid: var(--accent);
+  --color-acid-dim: var(--accent-dim);
+  --color-acid-ink: var(--accent-ink);
+  --color-acid-text: var(--accent-text);
+  --color-acid-mark: var(--accent-mark);
+
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+
+  --radius-card: 1.25rem;
+  --radius-pill: 999px;
+
+  --shadow-soft: var(--shadow-soft);
+  --shadow-pop: var(--shadow-pop);
+
+  --ease-spring: cubic-bezier(0.22, 1.4, 0.36, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  background-color: var(--bg);
+  /* iOS momentum scrolling with a fixed bottom bar needs this or the tab bar
+     jitters as the address bar collapses. */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background-color: var(--bg);
+  color: var(--text-1);
+  font-family: var(--font-sans);
+  font-feature-settings: 'cv11', 'ss01';
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior-y: none;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--border-strong);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+}
+
+/* Safari zooms the page when a sub-16px input is focused. */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Utilities
+--------------------------------------------------------------------------- */
+
+@utility grain {
+  position: relative;
+  isolation: isolate;
+}
+
+@utility card-surface {
+  background-color: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+/* A 1px gradient hairline that fades from crimson to lime along the top edge —
+   the app's signature. Uses a mask so it works on any background. */
+@utility edge-glow {
+  position: relative;
+}
+
+@utility text-balance {
+  text-wrap: balance;
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.edge-glow::before {
+  content: '';
+  position: absolute;
+  inset-inline: 12%;
+  top: -1px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--brand-glow) 25%,
+    var(--accent) 75%,
+    transparent
+  );
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.hairline {
+  background: linear-gradient(90deg, transparent, var(--border-strong), transparent);
+  height: 1px;
+}
+
+.gradient-text {
+  /* `accent-text` stays lime in dark mode and becomes a legible olive in
+     light mode; the bright accent fill is only safe behind dark text. */
+  background: linear-gradient(100deg, var(--brand-glow), var(--accent-text));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.shimmer {
+  background: linear-gradient(
+    100deg,
+    var(--surface-2) 20%,
+    var(--surface-3) 40%,
+    var(--surface-2) 60%
+  );
+  background-size: 220% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+.stripes {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    color-mix(in oklab, var(--text-3) 22%, transparent) 0 2px,
+    transparent 2px 7px
+  );
+}
+
+/* Bottom tab bar and floating buttons sit above the iOS home indicator. */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Keyframes
+--------------------------------------------------------------------------- */
+
+@keyframes shimmer {
+  to {
+    background-position: -220% 0;
+  }
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -18px, 0) scale(1.04);
+  }
+}
+
+@keyframes pan-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 45%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 14px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@keyframes ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 9s var(--ease-spring) infinite;
+}
+.animate-pan {
+  background-size: 200% 200%;
+  animation: pan-gradient 6s linear infinite;
+}
+.animate-pulse-ring {
+  animation: pulse-ring 2.4s var(--ease-out-quint) infinite;
+}
+.animate-ticker {
+  animation: ticker 26s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Recharts draws its own focus outline on every hovered cell; ours is enough. */
+.recharts-wrapper:focus,
+.recharts-surface:focus {
+  outline: none;
+}
+
+/* Fades the marquee out at both ends instead of cutting it off mid-word. */
+.mask-fade {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}

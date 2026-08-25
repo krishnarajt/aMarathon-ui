@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Amarathon — run the numbers</title>
+    <meta
+      name="description"
+      content="A daily step and distance challenge you play against your friends. New target every day, one winner, receipts required."
+    />
+    <meta name="theme-color" content="#0e1315" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f5f2ec" media="(prefers-color-scheme: light)" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <meta property="og:title" content="Amarathon" />
+    <meta property="og:description" content="Run the numbers. Every day, a new one." />
+    <meta property="og:type" content="website" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script>
+      // Stamp the saved theme before first paint. Without this the app flashes
+      // dark for a frame on a light-theme reload.
+      (function () {
+        try {
+          var saved = localStorage.getItem('amarathon_theme');
+          var theme =
+            saved ||
+            (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {
+          /* private mode — the default in the markup stands */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

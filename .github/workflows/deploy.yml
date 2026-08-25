@@ -1,0 +1,81 @@
+name: Deploy to Vercel
+
+# Required repository secrets:
+# - VERCEL_TOKEN
+# - VERCEL_ORG_ID
+# - VERCEL_PROJECT_ID
+#
+# Set VITE_API_BASE_URL as an environment variable in the Vercel project itself,
+# not here: it is baked into the bundle at build time and Vercel runs the build.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel
+
+      - name: Read Git metadata
+        run: |
+          REMOTE_URL="$(git config --get remote.origin.url)"
+          {
+            echo "GIT_COMMIT_SHA=$(git rev-parse HEAD)"
+            echo "GIT_COMMIT_REF=${GITHUB_REF_NAME:-$(git rev-parse --abbrev-ref HEAD)}"
+            echo "GIT_COMMIT_AUTHOR_NAME=$(git log -1 --pretty=format:%an)"
+            echo "GIT_COMMIT_AUTHOR_LOGIN=${GITHUB_ACTOR:-$(git log -1 --pretty=format:%an)}"
+            echo "GIT_COMMIT_MESSAGE=$(git log -1 --pretty=format:%s)"
+            echo "GIT_REPO_OWNER=${GITHUB_REPOSITORY_OWNER:-$(printf '%s' "$REMOTE_URL" | sed -E 's#.*[:/]([^/]+)/[^/]+$#\1#')}"
+            echo "GIT_REPO_NAME=$(basename -s .git "$REMOTE_URL")"
+          } >> "$GITHUB_ENV"
+
+      - name: Deploy preview
+        if: github.event_name == 'pull_request'
+        run: |
+          vercel deploy --yes --token=${{ secrets.VERCEL_TOKEN }} \
+            -m githubCommitAuthorLogin="$GIT_COMMIT_AUTHOR_LOGIN" \
+            -m githubCommitAuthorName="$GIT_COMMIT_AUTHOR_NAME" \
+            -m githubCommitMessage="$GIT_COMMIT_MESSAGE" \
+            -m githubCommitOrg="$GIT_REPO_OWNER" \
+            -m githubCommitRef="$GIT_COMMIT_REF" \
+            -m githubCommitRepo="$GIT_REPO_NAME" \
+            -m githubCommitSha="$GIT_COMMIT_SHA" \
+            -m githubDeployment="1" \
+            -m githubOrg="$GIT_REPO_OWNER" \
+            -m githubRepo="$GIT_REPO_NAME"
+
+      - name: Deploy production
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }} \
+            -m githubCommitAuthorLogin="$GIT_COMMIT_AUTHOR_LOGIN" \
+            -m githubCommitAuthorName="$GIT_COMMIT_AUTHOR_NAME" \
+            -m githubCommitMessage="$GIT_COMMIT_MESSAGE" \
+            -m githubCommitOrg="$GIT_REPO_OWNER" \
+            -m githubCommitRef="$GIT_COMMIT_REF" \
+            -m githubCommitRepo="$GIT_REPO_NAME" \
+            -m githubCommitSha="$GIT_COMMIT_SHA" \
+            -m githubDeployment="1" \
+            -m githubOrg="$GIT_REPO_OWNER" \
+            -m githubRepo="$GIT_REPO_NAME"

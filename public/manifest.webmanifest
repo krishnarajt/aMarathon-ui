@@ -1,0 +1,10 @@
+{
+  "name": "Amarathon",
+  "short_name": "Amarathon",
+  "description": "A daily step and distance challenge you play against your friends.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0e1315",
+  "theme_color": "#0e1315",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
